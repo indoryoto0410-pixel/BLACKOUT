@@ -323,7 +323,13 @@ function finishReveal(g){
  }
 
  drawEnd(g);
+if(g.attackCard){
+  g.discard.push(g.attackCard);
+}
 
+if(g.defenseCard){
+  g.discard.push(g.defenseCard);
+}
  g.attackCard=null;
  g.defenseCard=null;
  g.attackChip=null;
@@ -486,44 +492,81 @@ const server=http.createServer(async(req,res)=>{
       });
      }
 
-     if(
-      !x.card||
-      !cards[x.card]||
-      cards[x.card].type!=='attack'||
-      !takeCard(p,x.card)
-     ){
-      return send(
-       res,
-       {error:'攻撃カードを選んでください'},
-       400
-      );
-     }
+if(!x.card){
 
-     g.chosenCards[me]=x.card;
-     g.chosenChips[me]=null;
+  if(hasType(p,'attack')){
+    return send(
+      res,
+      {error:'攻撃カードを選んでください'},
+      400
+    );
+  }
 
-     if(x.chip){
+  addLog(
+    g,
+    `Player ${me+1}に攻撃カードがないため自動終了。`
+  );
 
-      if(x.card!=='roulette'){
-       return send(
-        res,
-        {error:'必中/一石二鳥はロシアンルーレット専用です'},
-        400
-       );
-      }
+  drawEnd(g);
+  g.turn=defender;
+  g.version++;
 
-      if(
-       !['sure','double'].includes(x.chip)||
-       !chip(p,x.chip)
-      ){
-       return send(
-        res,
-        {error:'そのチップはありません'},
-        400
-       );
-      }
+  return send(res,{
+    ok:true,
+    state:publicState(g,me)
+  });
+}
 
-      g.chosenChips[me]=x.chip;
+if(
+  !cards[x.card]||
+  cards[x.card].type!=='attack'
+){
+  return send(
+    res,
+    {error:'攻撃カードを選んでください'},
+    400
+  );
+}
+
+if(x.chip){
+
+  if(x.card!=='roulette'){
+    return send(
+      res,
+      {error:'必中/一石二鳥はロシアンルーレット専用です'},
+      400
+    );
+  }
+
+  if(
+    !['sure','double'].includes(x.chip)||
+    !p.chips.includes(x.chip)
+  ){
+    return send(
+      res,
+      {error:'そのチップはありません'},
+      400
+    );
+  }
+}
+
+if(!takeCard(p,x.card)){
+  return send(
+    res,
+    {error:'その攻撃カードはありません'},
+    400
+  );
+}
+
+g.chosenCards[me]=x.card;
+g.chosenChips[me]=null;
+
+if(x.chip){
+  chip(p,x.chip);
+  g.chosenChips[me]=x.chip;
+}
+
+
      }
 
      g.chosen[me]=true;

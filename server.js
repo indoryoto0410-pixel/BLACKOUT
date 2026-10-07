@@ -567,7 +567,7 @@ if(x.chip){
 }
 
 
-     }
+     
 
      g.chosen[me]=true;
 

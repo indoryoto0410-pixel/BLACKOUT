@@ -641,11 +641,17 @@ const hasDefense = state.players[0].hand.some(k =>
   cardNames[k]?.type === 'defense'
 );
 
+const canSetWithoutCard =
+  (!myTurn && !hasDefense) ||
+  (myTurn && !state.players[state.me].hand.some(k =>
+    cardNames[k]?.type === 'attack'
+  ));
+
 $('action').disabled=
-   (!selected && !( !myTurn && !hasDefense )) ||
-   myChosen||
-   state.gameOver||
-   revealed;
+  (!selected && !canSetWithoutCard) ||
+  myChosen||
+  state.gameOver||
+  revealed;
 $('action').textContent=
    myChosen
     ?'セット済み'
@@ -722,8 +728,9 @@ const hasDefense=state.players[0].hand.some(k =>
   cardNames[k]?.type === 'defense'
 );
 
-if(!selected && (myTurn || hasDefense)) return;
-
+if(!selected && (myTurn && state.players[state.me].hand.some(k =>
+  cardNames[k]?.type === 'attack'
+) || !myTurn && hasDefense)) return;
  try{
 
   const payload={

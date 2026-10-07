@@ -717,7 +717,12 @@ $('action').textContent=
 
 $('action').onclick=async()=>{
 
- if(!selected)return;
+const myTurn=state.turn===state.me;
+const hasDefense=state.players[0].hand.some(k =>
+  cardNames[k]?.type === 'defense'
+);
+
+if(!selected && (myTurn || hasDefense)) return;
 
  try{
 

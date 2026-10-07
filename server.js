@@ -94,7 +94,21 @@ function publicState(g,me){
 }
 function send(res,obj,status=200){const b=Buffer.from(JSON.stringify(obj));res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Content-Length':b.length});res.end(b)}
 function body(req){return new Promise((ok,fail)=>{let s='';req.on('data',c=>s+=c);req.on('end',()=>{try{ok(s?JSON.parse(s):{})}catch(e){fail(e)}})})}
-function serve(req,res){let u=new URL(req.url,'http://x');let file=u.pathname==='/'?'/index.html':u.pathname;let p=path.join(__dirname,'public',file);if(!p.startsWith(path.join(__dirname,'public')))return send(res,{error:'bad path'},403);fs.readFile(p,(e,b)=>{if(e)return send(res,{error:'not found'},404);let ext=path.extname(p);let ct=ext==='.html'?'text/html; charset=utf-8':ext==='.json'?'application/json; charset=utf-8':'application/octet-stream';res.writeHead(200,{'Content-Type':ct});res.end(b)})}
+function serve(req,res){
+  let u=new URL(req.url,'http://x');
+  let file=u.pathname==='/'?'/index.html':u.pathname;
+  let p=path.join(__dirname,file);
+  if(!p.startsWith(__dirname))return send(res,{error:'bad path'},403);
+  fs.readFile(p,(e,b)=>{
+    if(e)return send(res,{error:'not found'},404);
+    let ext=path.extname(p);
+    let ct=ext==='.html'?'text/html; charset=utf-8':
+           ext==='.json'?'application/json; charset=utf-8':
+           'application/octet-stream';
+    res.writeHead(200,{'Content-Type':ct});
+    res.end(b);
+  });
+}
 const server=http.createServer(async(req,res)=>{
  try{
   if(req.url.startsWith('/api/')){
